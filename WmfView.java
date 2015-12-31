@@ -26,6 +26,7 @@ import java.io.*;
 import java.util.*;
 import java.awt.*;
 import java.awt.image.*;
+import javax.imageio.*;
 
 
 public class WmfView extends Frame 
@@ -129,6 +130,21 @@ class WmfViewImageCanvas extends Canvas
     {
      return image;
     }
+
+    public void saveImage(Image image)
+    {
+        int w = 640, h = 480;
+        BufferedImage bi = new BufferedImage(w, h, BufferedImage.TYPE_INT_RGB);
+        Graphics big = bi.getGraphics();
+        big.drawImage(image, 0, 0, null);
+
+        File saveFile = new File("converted.png");
+        try {
+            ImageIO.write(bi, "png", saveFile);
+        } catch(IOException e) {
+            System.out.println(e);
+        }
+    }
     
     public void setImage(Image image)
     {
@@ -151,6 +167,7 @@ class WmfViewImageCanvas extends Canvas
 	 {
 	  case MediaTracker.COMPLETE:
 	    System.out.println("WMF MediaTracker OK.");
+        saveImage(image);
 	    break;
 	  default:
 	    System.out.println("WMF MediaTracker status = "+i);

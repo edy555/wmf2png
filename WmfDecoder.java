@@ -28,8 +28,8 @@ import java.awt.image.*;
 //
 class WmfDecoder implements ImageProducer
 {
-     boolean debug=false;
-//     boolean debug=true;
+         boolean debug=false;
+    //boolean debug=true;
      boolean drawCross_if_error=true;
      private int minsize=8;
      private int top,left,siz,obj,max,res,inch;
@@ -80,7 +80,8 @@ class WmfDecoder implements ImageProducer
 		 {
 	          err = true;
 	          width = height = -1;
-       	          System.out.println(ex);
+       	      //    System.out.println(ex);
+              ex.printStackTrace();
 		 }
 	     }
 
@@ -162,7 +163,7 @@ class WmfDecoder implements ImageProducer
      //---- main method for reading Wmf into a pixel array -------------------
      private void readWmf() throws IOException,InterruptedException
      {
-         Dimension d=new Dimension(320,240); // std window size, only if no first header present
+         Dimension d=new Dimension(640,480); // std window size, only if no first header present
          Image offscreen;
          Graphics g;
 
@@ -190,10 +191,11 @@ class WmfDecoder implements ImageProducer
 	 PixelGrabber pg=new PixelGrabber(offscreen.getSource(),0,0,
 	    d.width,d.height,rgbPixels,0,d.width);
          pg.grabPixels();
-	 if (debug)
+         if (debug) {
             PrintObserverStatus("PixelGrabber status: ",pg.status());
-      System.out.println("PixelGrabber status:"+pg.status());
-      System.out.println("fr="+fr);
+            System.out.println("PixelGrabber status:"+pg.status());
+            System.out.println("fr="+fr);
+         }
 	 fr.dispose();
 	}
 
@@ -223,15 +225,17 @@ class WmfDecoder implements ImageProducer
 	   case 5:wid=j;break;
 	   case 6:hig=j;break;
 	   case 7:hdr[10]=sum;			// store checksum
-                  res = Toolkit.getDefaultToolkit().getScreenResolution();
+           /*
+             res = Toolkit.getDefaultToolkit().getScreenResolution();
 	          inch = j;
 	          if (debug)
 	 	  {
 		    System.out.println("inch:  "+inch);
 		    System.out.println("sres:  "+res);
 		  }
-                  d.width  = ((wid-left)*res)/inch;
-                  d.height = ((hig-top)*res)/inch;
+              d.width  = ((wid-left)*res)/inch;
+              d.height = ((hig-top)*res)/inch;
+              */
 	          break;
 	   }
 	}
@@ -240,6 +244,7 @@ class WmfDecoder implements ImageProducer
        siz=readInt32(in);
        obj=readInt16(in);
        max=readInt32(in);
+       max = 154146;
        readInt16(in);				// unused
        if (debug)
 	 {
@@ -271,6 +276,11 @@ class WmfDecoder implements ImageProducer
 	      {
 		 rdSize = readInt32(in);
 		 rdFunc = readInt16(in);
+       if (debug)
+	 {
+          System.out.println("rdSize: "+rdSize);
+          System.out.println("rdFunc: "+rdFunc);
+	 }
 		 for (i=0;i<rdSize-3;i++)
 		   params[i]=readInt16(in);
 	      } 
@@ -943,9 +953,10 @@ class WmfDecoder implements ImageProducer
 		      break;
 
 		    case META_SETMAPMODE:
-		      if (debug)
-			showparams(params,rdSize,rdFunc);
-		      System.out.println("MetaSetMapMode: "+params[0]+" (ignored)");
+                if (debug) {
+                    showparams(params,rdSize,rdFunc);
+                    System.out.println("MetaSetMapMode: "+params[0]+" (ignored)");
+                }
 		      break;
 
 		    case META_SETBKCOLOR:
