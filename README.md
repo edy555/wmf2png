@@ -27,7 +27,7 @@ This will generate foo.png from foo.wmf.
 
 # Build from source
 
-If you will modify code, you need following.
+If you will modify code, you need following. Please consult Makefile.
 
 * Requires Java Development Kit.
 * Just run make
