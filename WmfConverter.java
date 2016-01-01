@@ -35,6 +35,8 @@ public class WmfConverter implements ImageConsumer
  
     static public void main(String[] args) 
     {
+        System.setProperty("java.awt.headless", "true");
+
         if (args.length > 0) {
             WmfConverter cvt = new WmfConverter();
             try {

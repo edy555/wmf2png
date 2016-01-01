@@ -182,7 +182,7 @@ class WmfDecoder implements ImageProducer, ImageObserver
 	 //offscreen = fr.createImage(d.width,d.height);
      offscreen = new BufferedImage(d.width, d.height, BufferedImage.TYPE_INT_RGB);
 	 g = offscreen.getGraphics();
- 	 params=new short[max];  		// max space for a metafile record
+ 	 params=null;
 	
 	 WmfDecDC DC=new WmfDecDC(width,height,left,top);
 	 DC.gr=g;
@@ -283,6 +283,9 @@ class WmfDecoder implements ImageProducer, ImageObserver
           System.out.println("rdSize: "+rdSize);
           System.out.println("rdFunc: "+rdFunc);
 	 }
+       if (params == null || params.length < rdSize-3)
+           params = new short[rdSize-3];
+
 		 for (i=0;i<rdSize-3;i++)
 		   params[i]=readInt16(in);
 	      } 
