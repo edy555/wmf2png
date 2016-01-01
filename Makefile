@@ -12,4 +12,4 @@ JAVAC_OPT=  -Xlint:deprecation -Xlint:unchecked
 	$(JAVAC) $(JAVAC_OPT) $<
 
 test:
-	$(JAVA) WmfConverter world.wmf
+	$(JAVA) -Djava.awt.headless=true WmfConverter world.wmf

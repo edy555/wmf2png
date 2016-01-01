@@ -26,7 +26,7 @@ import java.awt.image.*;
 
 // ----------- the WMF file interpreter ----------------------------------
 //
-class WmfDecoder implements ImageProducer
+class WmfDecoder implements ImageProducer, ImageObserver
 {
          boolean debug=false;
     //boolean debug=true;
@@ -37,7 +37,8 @@ class WmfDecoder implements ImageProducer
      private Stack DCstack;
      private int rgbPixels[]=null;
      private short params[];
-     private Frame fr;
+     //private Frame fr;
+     private Toolkit fr = Toolkit.getDefaultToolkit();;
      private int width = -1, height = -1;
      private InputStream in;
      private ColorModel cmodel=ColorModel.getRGBdefault();
@@ -176,9 +177,10 @@ class WmfDecoder implements ImageProducer
          height=d.height;
 	 if (debug)        
            System.out.println(d);
-	 fr= new Frame();
-         fr.addNotify();
-	 offscreen = fr.createImage(d.width,d.height);
+	 //fr= new Frame();
+     //fr.addNotify();
+	 //offscreen = fr.createImage(d.width,d.height);
+     offscreen = new BufferedImage(d.width, d.height, BufferedImage.TYPE_INT_RGB);
 	 g = offscreen.getGraphics();
  	 params=new short[max];  		// max space for a metafile record
 	
@@ -196,7 +198,7 @@ class WmfDecoder implements ImageProducer
             System.out.println("PixelGrabber status:"+pg.status());
             System.out.println("fr="+fr);
          }
-	 fr.dispose();
+         //fr.dispose();
 	}
 
 
@@ -365,7 +367,7 @@ class WmfDecoder implements ImageProducer
 				i=b;b=d;d=i;
 			  }
 		      if (DC.aktbrush.getImage(DC.aktbkmode==1)!=null)
-				  drawOpaqePattern(g,DC.aktbrush.getImage(DC.aktbkmode==1),d,c,b,a,fr);
+				  drawOpaqePattern(g,DC.aktbrush.getImage(DC.aktbkmode==1),d,c,b,a);
 		      else if (DC.aktbrush.getColor() != null)
 			  {
 			     g.setColor(DC.aktbrush.getColor());
@@ -1043,7 +1045,7 @@ class WmfDecoder implements ImageProducer
 			   break;
 			 case PATCOPY:
 			   if ((im=DC.aktbrush.getImage(DC.aktbkmode==1))!=null)
-					drawOpaqePattern(g,im,d,c,d+b,c+a,fr);
+					drawOpaqePattern(g,im,d,c,d+b,c+a);
 			   else if (DC.aktbrush.getColor() != null)
 			   {
 					g.setColor(DC.aktbrush.getColor());
@@ -1080,7 +1082,7 @@ class WmfDecoder implements ImageProducer
 		           im=OldBitmapImage(10,params,fr);
 		           if (im!=null)
 			     {
-			        g.drawImage(im,d,c,b,a,fr);
+			        g.drawImage(im,d,c,b,a,this);
 			        im=null;
 			     }
 			   else
@@ -1148,7 +1150,7 @@ class WmfDecoder implements ImageProducer
 			   im = DIBBitmapImage(10+k,params,fr);	// here starts bmp
 			   if (im!=null)
 			     {
-				g.drawImage(im,d,c,b,a,fr);
+				g.drawImage(im,d,c,b,a,this);
 				im=null;
 			     }
 			   else
@@ -1222,7 +1224,7 @@ class WmfDecoder implements ImageProducer
 		 return new BasicStroke(dash==null ? (float)DC.aktpen.getWidth() : 1.0f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_MITER, 10.0f, dash, 0.0f);
 	 }
 
-       private void drawOpaqePattern(Graphics g,Image im,int x1,int y1,int x2,int y2,ImageObserver fr)
+       private void drawOpaqePattern(Graphics g,Image im,int x1,int y1,int x2,int y2)
        {
 	  // it's just a little bit tricky ;-)
 	  // subsequent calls to clipRect allow only to make the clip-region smaller
@@ -1235,7 +1237,7 @@ class WmfDecoder implements ImageProducer
 	  g2.clipRect(x1%8,y1%8,width,height);
 	  for (i=0;i<width+9;i+=8)
 	    for (j=0 ;j<height+9;j+=8)
-	      g2.drawImage(im,i,j,fr);
+	      g2.drawImage(im,i,j,this);
           g2.dispose();
        }
 
@@ -1341,7 +1343,7 @@ class WmfDecoder implements ImageProducer
        }
 
       // ----------- called by META_STRETCHDIB ----------- (1, 4, 8 bpp only, no RLE) --------
-      private Image DIBBitmapImage(int off,short params[],Component comp)
+      private Image DIBBitmapImage(int off,short params[],Toolkit comp)
 	 {
 	    int width=params[off+2];
 	    int height=params[off+4];
@@ -1446,7 +1448,7 @@ class WmfDecoder implements ImageProducer
 
        
 	 // ----------- called by META_STRETCHBLT ----------- (here monochrome only) --------
-	private Image OldBitmapImage(int off,short params[],Component comp)
+	private Image OldBitmapImage(int off,short params[],Toolkit comp)
 	 {
 	    int width=params[off];
 	    int height=params[off+1];
@@ -1473,6 +1475,12 @@ class WmfDecoder implements ImageProducer
 	    return im;
 	 }
        
+    // implements ImageObserver
+    public boolean imageUpdate(Image img, int infoflags, int x, int y, int width, int height) {
+        return true;
+    }
+
+
 private final static int META_SETBKCOLOR              = 0x0201; //
 private final static int META_SETBKMODE               = 0x0102; //
 private final static int META_SETMAPMODE              = 0x0103; //
@@ -1630,7 +1638,7 @@ class WmfDecObj
 	  magic=M_BRUSH;
        }
 
-     WmfDecObj(int hatchstyle,Color cc,Color back,Component fr)
+     WmfDecObj(int hatchstyle,Color cc,Color back,Toolkit fr)
        {
 	  c=cc;				// TRANSPARENT mode not suppd
 	  hatch=hatchstyle;
@@ -1702,7 +1710,7 @@ class WmfDecObj
 		 return f_escapement;
 	 }
 
-   Image createHatchImage(int hatchstyle,Color cc,Color back,Component fr, boolean trans)
+   Image createHatchImage(int hatchstyle,Color cc,Color back,Toolkit fr, boolean trans)
      {
 	Image im;
 	int i,pixels[] =new int[64];
